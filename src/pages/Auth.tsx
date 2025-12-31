@@ -1,42 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil, Lock, Mail, Eye, EyeOff } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet-async";
+import { useAuth } from "@/hooks/useAuth";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+});
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signIn, signUp, loading, user, isAdmin } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user && isAdmin) {
+      navigate("/admin");
+    }
+  }, [user, isAdmin, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setErrors({});
 
-    // Mock authentication - will be replaced with Supabase
-    setTimeout(() => {
-      if (email === "admin@lapiscriativo.com" && password === "admin123") {
-        localStorage.setItem("isAdmin", "true");
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Bem-vindo ao painel administrativo.",
-        });
-        navigate("/admin");
-      } else {
-        toast({
-          title: "Erro no login",
-          description: "Email ou senha incorretos.",
-          variant: "destructive",
-        });
+    const validation = authSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const fieldErrors: { email?: string; password?: string } = {};
+      validation.error.errors.forEach((err) => {
+        if (err.path[0] === "email") fieldErrors.email = err.message;
+        if (err.path[0] === "password") fieldErrors.password = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    if (isSignUp) {
+      const { error } = await signUp(email, password);
+      if (!error) {
+        setIsSignUp(false);
       }
-      setIsLoading(false);
-    }, 1000);
+    } else {
+      const { error } = await signIn(email, password);
+      if (!error) {
+        navigate("/admin");
+      }
+    }
   };
 
   return (
@@ -49,11 +67,21 @@ const Auth = () => {
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="absolute inset-0 bg-gradient-glow opacity-30" />
-        
-        <div className="relative z-10 w-full max-w-md">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10 w-full max-w-md"
+        >
           <div className="glass-card p-8">
             {/* Logo */}
-            <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-center mb-8"
+            >
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
                 <Pencil className="w-8 h-8 text-primary-foreground" />
               </div>
@@ -61,11 +89,11 @@ const Auth = () => {
                 Área Administrativa
               </h1>
               <p className="text-muted-foreground">
-                Faça login para gerenciar o portfólio
+                {isSignUp ? "Crie sua conta" : "Faça login para gerenciar o portfólio"}
               </p>
-            </div>
+            </motion.div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-foreground">
                   Email
@@ -82,6 +110,9 @@ const Auth = () => {
                     required
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -111,6 +142,9 @@ const Auth = () => {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
               </div>
 
               <Button
@@ -118,13 +152,15 @@ const Auth = () => {
                 variant="neon"
                 size="lg"
                 className="w-full"
-                disabled={isLoading}
+                disabled={loading}
               >
-                {isLoading ? (
+                {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Entrando...
+                    {isSignUp ? "Cadastrando..." : "Entrando..."}
                   </span>
+                ) : isSignUp ? (
+                  "Cadastrar"
                 ) : (
                   "Entrar"
                 )}
@@ -132,12 +168,24 @@ const Auth = () => {
             </form>
 
             <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-primary hover:underline"
+              >
+                {isSignUp
+                  ? "Já tem conta? Faça login"
+                  : "Não tem conta? Cadastre-se"}
+              </button>
+            </div>
+
+            <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
                 Acesso restrito a administradores
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );

@@ -1,34 +1,41 @@
 import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { mockProjects } from "@/data/mockProjects";
-import { ArrowLeft, ExternalLink, Calendar, Tag } from "lucide-react";
+import { useProject } from "@/hooks/useProjects";
+import { ArrowLeft, ExternalLink, Calendar, Tag, Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
-
-const categoryLabels: Record<string, string> = {
-  sites: "Sites",
-  "landing-pages": "Landing Pages",
-  crms: "CRMs",
-  "micro-saas": "Micro-SaaS",
-};
+import { categoryLabels } from "@/types/project";
 
 const Project = () => {
   const { id } = useParams();
-  const project = mockProjects.find((p) => p.id === id);
+  const { data: project, isLoading, error } = useProject(id || "");
 
-  if (!project) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
           <h1 className="font-display text-4xl font-bold text-foreground mb-4">
             Projeto não encontrado
           </h1>
           <Link to="/">
             <Button variant="neon">Voltar ao Portfólio</Button>
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -36,62 +43,98 @@ const Project = () => {
   return (
     <>
       <Helmet>
-        <title>{project.name} - Lápis Criativo</title>
-        <meta name="description" content={project.shortDescription} />
+        <title>{project.title} - Lápis Criativo</title>
+        <meta name="description" content={project.description} />
       </Helmet>
       <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-28 pb-20">
           <div className="container mx-auto px-6">
-            <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
-              <ArrowLeft className="w-4 h-4" />
-              Voltar ao Portfólio
-            </Link>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar ao Portfólio
+              </Link>
+            </motion.div>
 
             <div className="grid lg:grid-cols-2 gap-12 items-start">
               {/* Project Image */}
-              <div className="glass-card overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="glass-card overflow-hidden"
+              >
                 <div className="relative aspect-video">
-                  <img
-                    src={project.thumbnail}
-                    alt={project.name}
+                  <motion.img
+                    src={project.thumbnail_url || "/placeholder.svg"}
+                    alt={project.title}
                     className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.5 }}
                   />
                   {project.featured && (
-                    <div className="absolute top-4 left-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="absolute top-4 left-4"
+                    >
                       <Badge className="bg-gradient-primary text-primary-foreground border-0 shadow-glow">
                         ⭐ Projeto Destaque
                       </Badge>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
-              </div>
+              </motion.div>
 
               {/* Project Info */}
-              <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="space-y-6"
+              >
                 <div>
                   <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
                     <Tag className="w-3 h-3 mr-1" />
                     {categoryLabels[project.category]}
                   </Badge>
                   <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-                    {project.name}
+                    {project.title}
                   </h1>
                   <p className="text-lg text-muted-foreground">
-                    {project.shortDescription}
+                    {project.description}
                   </p>
                 </div>
 
-                <div className="glass-card p-6 space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="glass-card p-6 space-y-4"
+                >
                   <h2 className="font-display text-xl font-semibold text-foreground">
                     Sobre o Projeto
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    {project.fullDescription}
+                    {project.full_description || project.description}
                   </p>
-                </div>
+                </motion.div>
 
-                <div className="glass-card p-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="glass-card p-6"
+                >
                   <h3 className="font-display text-lg font-semibold text-foreground mb-4">
                     Detalhes
                   </h3>
@@ -119,27 +162,42 @@ const Project = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <a
-                    href={project.externalLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="flex flex-col sm:flex-row gap-4"
+                >
+                  {project.external_link && (
+                    <motion.a
+                      href={project.external_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Button variant="neon" size="xl" className="w-full">
+                        <ExternalLink className="w-5 h-5" />
+                        Abrir Projeto
+                      </Button>
+                    </motion.a>
+                  )}
+                  <motion.div
                     className="flex-1"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <Button variant="neon" size="xl" className="w-full">
-                      <ExternalLink className="w-5 h-5" />
-                      Abrir Projeto
-                    </Button>
-                  </a>
-                  <Link to="/" className="flex-1">
-                    <Button variant="glass" size="xl" className="w-full">
-                      Ver Outros Projetos
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+                    <Link to="/" className="block">
+                      <Button variant="glass" size="xl" className="w-full">
+                        Ver Outros Projetos
+                      </Button>
+                    </Link>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
         </main>
