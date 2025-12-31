@@ -166,7 +166,7 @@ const Hero = () => {
                 variant="glass" 
                 size="xl"
                 onClick={() => {
-                  window.open("https://wa.me/5511999999999?text=Olá! Gostaria de saber mais sobre os serviços da Lápis Criativo.", "_blank");
+                  window.open("https://wa.me/5521965982906?text=Olá! Gostaria de saber mais sobre os serviços da Lápis Criativo.", "_blank");
                 }}
               >
                 Falar com a Agência
