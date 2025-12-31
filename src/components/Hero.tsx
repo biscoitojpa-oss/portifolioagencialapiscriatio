@@ -10,8 +10,11 @@ const Hero = () => {
       <div className="absolute inset-0 bg-gradient-glow opacity-50" />
 
       {/* Animated Grid */}
-      <div
-        className="absolute inset-0 opacity-10"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.1 }}
+        transition={{ duration: 2 }}
+        className="absolute inset-0"
         style={{
           backgroundImage: `
             linear-gradient(hsl(var(--primary) / 0.1) 1px, transparent 1px),
@@ -21,75 +24,125 @@ const Hero = () => {
         }}
       />
 
-      {/* Floating Orbs */}
+      {/* Floating Orbs with enhanced animation */}
       <motion.div
         className="absolute top-1/4 left-1/4 w-72 h-72 bg-neon-purple/20 rounded-full blur-3xl"
+        initial={{ opacity: 0, scale: 0.5 }}
         animate={{
+          opacity: 1,
+          scale: 1,
           y: [0, -30, 0],
-          scale: [1, 1.1, 1],
         }}
         transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
+          opacity: { duration: 1 },
+          scale: { duration: 1.5, ease: "easeOut" },
+          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
         }}
       />
       <motion.div
         className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-pink/10 rounded-full blur-3xl"
+        initial={{ opacity: 0, scale: 0.5 }}
         animate={{
+          opacity: 1,
+          scale: 1,
           y: [0, 30, 0],
-          scale: [1, 1.15, 1],
         }}
         transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
+          opacity: { duration: 1, delay: 0.3 },
+          scale: { duration: 1.5, delay: 0.3, ease: "easeOut" },
+          y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+      <motion.div
+        className="absolute top-1/2 right-1/3 w-48 h-48 bg-primary/10 rounded-full blur-3xl"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{
+          opacity: 0.6,
+          scale: 1,
+          x: [0, 20, 0],
+        }}
+        transition={{
+          opacity: { duration: 1, delay: 0.5 },
+          scale: { duration: 1.5, delay: 0.5, ease: "easeOut" },
+          x: { duration: 10, repeat: Infinity, ease: "easeInOut" },
         }}
       />
 
       <div className="container mx-auto px-6 text-center relative z-10">
         <div className="max-w-4xl mx-auto">
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
+            <motion.div
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+            </motion.div>
             <span className="text-sm text-primary font-medium">
               Agência de Design & Desenvolvimento
             </span>
           </motion.div>
 
+          {/* Title with letter animation */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6"
           >
-            Projetos que{" "}
-            <span className="gradient-text">transformam ideias</span>
+            <motion.span
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              Projetos que{" "}
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="gradient-text inline-block"
+            >
+              transformam ideias
+            </motion.span>
             <br />
-            em negócios digitais
+            <motion.span
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              em negócios digitais
+            </motion.span>
           </motion.h1>
 
+          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 1 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
           >
             Desenvolvemos sites, landing pages, CRMs e Micro-SaaS com design
             premium e tecnologia de ponta para impulsionar seu sucesso.
           </motion.p>
 
+          {/* Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+              className="rounded-xl"
+            >
               <Button
                 variant="neon"
                 size="xl"
@@ -100,22 +153,33 @@ const Hero = () => {
                 }}
               >
                 Ver Projetos
-                <ArrowDown className="w-5 h-5" />
+                <motion.div
+                  animate={{ y: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowDown className="w-5 h-5" />
+                </motion.div>
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="glass" size="xl">
+              <Button 
+                variant="glass" 
+                size="xl"
+                onClick={() => {
+                  window.open("https://wa.me/5511999999999?text=Olá! Gostaria de saber mais sobre os serviços da Lápis Criativo.", "_blank");
+                }}
+              >
                 Falar com a Agência
               </Button>
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Stats */}
+        {/* Stats with enhanced animation */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          transition={{ duration: 0.8, delay: 1.4 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 max-w-3xl mx-auto"
         >
           {[
@@ -126,10 +190,15 @@ const Hero = () => {
           ].map((stat, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 1 + index * 0.1 }}
-              whileHover={{ scale: 1.1 }}
+              transition={{ 
+                duration: 0.5, 
+                delay: 1.6 + index * 0.15,
+              }}
+              whileHover={{ 
+                scale: 1.15, 
+              }}
               className="text-center"
             >
               <div className="font-display text-3xl md:text-4xl font-bold gradient-text mb-1">
@@ -141,16 +210,23 @@ const Hero = () => {
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
+      {/* Scroll Indicator with pulse effect */}
       <motion.div
         className="absolute bottom-10 left-1/2 -translate-x-1/2"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, y: [0, 10, 0] }}
+        transition={{ 
+          opacity: { delay: 2, duration: 0.5 },
+          y: { duration: 1.5, repeat: Infinity, delay: 2 }
+        }}
       >
         <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
           <motion.div
-            className="w-1 h-2 bg-muted-foreground rounded-full"
-            animate={{ opacity: [0.3, 1, 0.3] }}
+            className="w-1 h-2 bg-primary rounded-full"
+            animate={{ 
+              opacity: [0.3, 1, 0.3],
+              scaleY: [1, 1.5, 1],
+            }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
         </div>
