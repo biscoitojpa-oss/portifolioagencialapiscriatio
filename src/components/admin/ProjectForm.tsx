@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,19 +29,48 @@ interface ProjectFormProps {
 
 const ProjectForm = ({ project, onSubmit, onClose, isSubmitting }: ProjectFormProps) => {
   const [formData, setFormData] = useState({
-    title: project?.title || "",
-    category: (project?.category || "sites") as ProjectCategory,
-    description: project?.description || "",
-    full_description: project?.full_description || "",
-    thumbnail_url: project?.thumbnail_url || "",
-    external_link: project?.external_link || "",
-    featured: project?.featured || false,
-    status: (project?.status || "active") as ProjectStatus,
-    display_order: project?.display_order || 0,
+    title: "",
+    category: "sites" as ProjectCategory,
+    description: "",
+    full_description: "",
+    thumbnail_url: "",
+    external_link: "",
+    featured: false,
+    status: "active" as ProjectStatus,
+    display_order: 0,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadImage, uploading } = useImageUpload();
+
+  // Update form data when project changes
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        title: project.title || "",
+        category: project.category || "sites",
+        description: project.description || "",
+        full_description: project.full_description || "",
+        thumbnail_url: project.thumbnail_url || "",
+        external_link: project.external_link || "",
+        featured: project.featured || false,
+        status: project.status || "active",
+        display_order: project.display_order || 0,
+      });
+    } else {
+      setFormData({
+        title: "",
+        category: "sites",
+        description: "",
+        full_description: "",
+        thumbnail_url: "",
+        external_link: "",
+        featured: false,
+        status: "active",
+        display_order: 0,
+      });
+    }
+  }, [project]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
