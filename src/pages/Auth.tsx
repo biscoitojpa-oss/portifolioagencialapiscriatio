@@ -18,10 +18,9 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const navigate = useNavigate();
-  const { signIn, signUp, loading, user, isAdmin } = useAuth();
+  const { signIn, loading, user, isAdmin } = useAuth();
 
   useEffect(() => {
     if (user && isAdmin) {
@@ -44,16 +43,9 @@ const Auth = () => {
       return;
     }
 
-    if (isSignUp) {
-      const { error } = await signUp(email, password);
-      if (!error) {
-        setIsSignUp(false);
-      }
-    } else {
-      const { error } = await signIn(email, password);
-      if (!error) {
-        navigate("/admin");
-      }
+    const { error } = await signIn(email, password);
+    if (!error) {
+      navigate("/admin");
     }
   };
 
@@ -89,7 +81,7 @@ const Auth = () => {
                 Área Administrativa
               </h1>
               <p className="text-muted-foreground">
-                {isSignUp ? "Crie sua conta" : "Faça login para gerenciar o portfólio"}
+                Faça login para gerenciar o portfólio
               </p>
             </motion.div>
 
@@ -157,27 +149,14 @@ const Auth = () => {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    {isSignUp ? "Cadastrando..." : "Entrando..."}
+                    Entrando...
                   </span>
-                ) : isSignUp ? (
-                  "Cadastrar"
                 ) : (
                   "Entrar"
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-primary hover:underline"
-              >
-                {isSignUp
-                  ? "Já tem conta? Faça login"
-                  : "Não tem conta? Cadastre-se"}
-              </button>
-            </div>
 
             <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
