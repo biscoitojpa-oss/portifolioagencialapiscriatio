@@ -231,6 +231,7 @@ const Admin = () => {
                   </Button>
                 </DialogTrigger>
                 <ProjectForm
+                  key={editingProject?.id || "new"}
                   project={editingProject}
                   onSubmit={handleSubmit}
                   onClose={() => setIsDialogOpen(false)}

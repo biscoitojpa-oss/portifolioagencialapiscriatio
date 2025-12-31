@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ProjectGrid from "@/components/ProjectGrid";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { Helmet } from "react-helmet-async";
 
 const Index = () => {
@@ -86,6 +87,7 @@ const Index = () => {
           </section>
         </main>
         <Footer />
+        <WhatsAppButton phoneNumber="5511999999999" />
       </div>
     </>
   );
