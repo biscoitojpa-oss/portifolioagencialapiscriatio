@@ -1,8 +1,8 @@
+import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ProjectGrid from "@/components/ProjectGrid";
 import Footer from "@/components/Footer";
-import { mockProjects } from "@/data/mockProjects";
 import { Helmet } from "react-helmet-async";
 
 const Index = () => {
@@ -19,12 +19,18 @@ const Index = () => {
         <Header />
         <main>
           <Hero />
-          <ProjectGrid projects={mockProjects} />
-          
+          <ProjectGrid />
+
           {/* About Section */}
           <section id="sobre" className="py-20 bg-card/30">
             <div className="container mx-auto px-6">
-              <div className="max-w-4xl mx-auto text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="max-w-4xl mx-auto text-center"
+              >
                 <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
                   Por que a <span className="gradient-text">Lápis Criativo</span>?
                 </h2>
@@ -33,7 +39,7 @@ const Index = () => {
                   impactante com tecnologia de ponta. Cada projeto é único e
                   desenvolvido com foco total em resultados.
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {[
                     {
@@ -52,16 +58,30 @@ const Index = () => {
                       icon: "📈",
                     },
                   ].map((item, index) => (
-                    <div key={index} className="glass-card p-8 hover-lift">
-                      <div className="text-4xl mb-4">{item.icon}</div>
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      whileHover={{ y: -8, scale: 1.02 }}
+                      className="glass-card p-8"
+                    >
+                      <motion.div
+                        className="text-4xl mb-4"
+                        whileHover={{ scale: 1.2, rotate: 10 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        {item.icon}
+                      </motion.div>
                       <h3 className="font-display text-xl font-bold text-foreground mb-3">
                         {item.title}
                       </h3>
                       <p className="text-muted-foreground">{item.description}</p>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </section>
         </main>

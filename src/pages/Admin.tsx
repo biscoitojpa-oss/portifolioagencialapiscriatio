@@ -1,182 +1,163 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Pencil,
   Plus,
-  Edit,
-  Trash2,
-  ExternalLink,
   LogOut,
   LayoutDashboard,
   FolderOpen,
   Star,
   Eye,
-  EyeOff,
+  Loader2,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { mockProjects } from "@/data/mockProjects";
-import { Project } from "@/components/ProjectCard";
 import { Helmet } from "react-helmet-async";
-
-const categoryLabels: Record<string, string> = {
-  sites: "Sites",
-  "landing-pages": "Landing Pages",
-  crms: "CRMs",
-  "micro-saas": "Micro-SaaS",
-};
+import { useAuth } from "@/hooks/useAuth";
+import {
+  useProjects,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+  useReorderProjects,
+} from "@/hooks/useProjects";
+import { Project } from "@/types/project";
+import SortableProjectRow from "@/components/admin/SortableProjectRow";
+import ProjectForm from "@/components/admin/ProjectForm";
 
 const Admin = () => {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [deleteProject, setDeleteProject] = useState<Project | null>(null);
+  const [localProjects, setLocalProjects] = useState<Project[]>([]);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "sites" as Project["category"],
-    shortDescription: "",
-    fullDescription: "",
-    thumbnail: "",
-    externalLink: "",
-    featured: false,
-    status: "active" as Project["status"],
-  });
+  const navigate = useNavigate();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
+  const { data: projects, isLoading: projectsLoading } = useProjects(true);
+
+  const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
+  const deleteProjectMutation = useDeleteProject();
+  const reorderProjects = useReorderProjects();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("isAdmin");
-    if (!isAdmin) {
+    if (!authLoading && (!user || !isAdmin)) {
       navigate("/login");
     }
-  }, [navigate]);
+  }, [user, isAdmin, authLoading, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAdmin");
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
-    });
+  useEffect(() => {
+    if (projects) {
+      setLocalProjects(projects);
+    }
+  }, [projects]);
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/login");
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      category: "sites",
-      shortDescription: "",
-      fullDescription: "",
-      thumbnail: "",
-      externalLink: "",
-      featured: false,
-      status: "active",
-    });
-    setEditingProject(null);
-  };
-
   const handleOpenDialog = (project?: Project) => {
-    if (project) {
-      setEditingProject(project);
-      setFormData({
-        name: project.name,
-        category: project.category,
-        shortDescription: project.shortDescription,
-        fullDescription: project.fullDescription,
-        thumbnail: project.thumbnail,
-        externalLink: project.externalLink,
-        featured: project.featured,
-        status: project.status,
-      });
-    } else {
-      resetForm();
-    }
+    setEditingProject(project || null);
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (data: Omit<Project, "id" | "created_at" | "updated_at">) => {
     if (editingProject) {
-      setProjects(projects.map((p) =>
-        p.id === editingProject.id
-          ? { ...p, ...formData }
-          : p
-      ));
-      toast({
-        title: "Projeto atualizado!",
-        description: `O projeto "${formData.name}" foi atualizado com sucesso.`,
-      });
+      await updateProject.mutateAsync({ id: editingProject.id, ...data });
     } else {
-      const newProject: Project = {
-        id: Date.now().toString(),
-        ...formData,
-      };
-      setProjects([newProject, ...projects]);
-      toast({
-        title: "Projeto criado!",
-        description: `O projeto "${formData.name}" foi criado com sucesso.`,
-      });
+      await createProject.mutateAsync(data);
     }
-    
     setIsDialogOpen(false);
-    resetForm();
+    setEditingProject(null);
   };
 
-  const handleDelete = (project: Project) => {
-    setProjects(projects.filter((p) => p.id !== project.id));
-    toast({
-      title: "Projeto excluído",
-      description: `O projeto "${project.name}" foi removido.`,
-      variant: "destructive",
-    });
+  const handleDelete = async () => {
+    if (deleteProject) {
+      await deleteProjectMutation.mutateAsync(deleteProject.id);
+      setDeleteProject(null);
+    }
   };
 
-  const handleToggleStatus = (project: Project) => {
+  const handleToggleStatus = async (project: Project) => {
     const newStatus = project.status === "active" ? "hidden" : "active";
-    setProjects(projects.map((p) =>
-      p.id === project.id ? { ...p, status: newStatus } : p
-    ));
-    toast({
-      title: newStatus === "active" ? "Projeto ativado" : "Projeto ocultado",
-      description: `O projeto "${project.name}" foi ${newStatus === "active" ? "ativado" : "ocultado"}.`,
-    });
+    await updateProject.mutateAsync({ id: project.id, status: newStatus });
   };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = localProjects.findIndex((p) => p.id === active.id);
+      const newIndex = localProjects.findIndex((p) => p.id === over.id);
+
+      const newOrder = arrayMove(localProjects, oldIndex, newIndex);
+      setLocalProjects(newOrder);
+
+      const updates = newOrder.map((project, index) => ({
+        id: project.id,
+        display_order: index,
+      }));
+
+      await reorderProjects.mutateAsync(updates);
+    }
+  };
+
+  if (authLoading || projectsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const stats = {
-    total: projects.length,
-    active: projects.filter((p) => p.status === "active").length,
-    sites: projects.filter((p) => p.category === "sites").length,
-    landingPages: projects.filter((p) => p.category === "landing-pages").length,
-    crms: projects.filter((p) => p.category === "crms").length,
-    microSaas: projects.filter((p) => p.category === "micro-saas").length,
+    total: localProjects.length,
+    active: localProjects.filter((p) => p.status === "active").length,
+    sites: localProjects.filter((p) => p.category === "sites").length,
+    landingPages: localProjects.filter((p) => p.category === "landing-pages").length,
+    crms: localProjects.filter((p) => p.category === "crms").length,
+    microSaas: localProjects.filter((p) => p.category === "micro-saas").length,
   };
 
   return (
@@ -229,13 +210,17 @@ const Admin = () => {
         <main className="ml-64 p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between mb-8"
+            >
               <div>
                 <h1 className="font-display text-3xl font-bold text-foreground">
                   Dashboard
                 </h1>
                 <p className="text-muted-foreground">
-                  Gerencie os projetos do portfólio
+                  Gerencie os projetos do portfólio (arraste para reordenar)
                 </p>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -245,128 +230,22 @@ const Admin = () => {
                     Novo Projeto
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl bg-card border-border">
-                  <DialogHeader>
-                    <DialogTitle className="font-display text-xl">
-                      {editingProject ? "Editar Projeto" : "Novo Projeto"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Nome do Projeto</Label>
-                        <Input
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder="Ex: TechFlow Dashboard"
-                          className="bg-input border-border"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Categoria</Label>
-                        <Select
-                          value={formData.category}
-                          onValueChange={(value: Project["category"]) =>
-                            setFormData({ ...formData, category: value })
-                          }
-                        >
-                          <SelectTrigger className="bg-input border-border">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="sites">Sites</SelectItem>
-                            <SelectItem value="landing-pages">Landing Pages</SelectItem>
-                            <SelectItem value="crms">CRMs</SelectItem>
-                            <SelectItem value="micro-saas">Micro-SaaS</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Descrição Curta</Label>
-                      <Input
-                        value={formData.shortDescription}
-                        onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                        placeholder="Breve descrição do projeto (1-2 linhas)"
-                        className="bg-input border-border"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Descrição Completa</Label>
-                      <Textarea
-                        value={formData.fullDescription}
-                        onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
-                        placeholder="Descreva o objetivo, tipo de solução e nicho do projeto..."
-                        className="bg-input border-border min-h-[120px]"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>URL da Thumbnail</Label>
-                        <Input
-                          value={formData.thumbnail}
-                          onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                          placeholder="https://..."
-                          className="bg-input border-border"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Link Externo</Label>
-                        <Input
-                          value={formData.externalLink}
-                          onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
-                          placeholder="https://..."
-                          className="bg-input border-border"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-8">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={formData.featured}
-                          onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
-                        />
-                        <Label>Projeto Destaque</Label>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={formData.status === "active"}
-                          onCheckedChange={(checked) =>
-                            setFormData({ ...formData, status: checked ? "active" : "hidden" })
-                          }
-                        />
-                        <Label>Ativo no Portfólio</Label>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setIsDialogOpen(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button type="submit" variant="neon">
-                        {editingProject ? "Salvar Alterações" : "Criar Projeto"}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
+                <ProjectForm
+                  project={editingProject}
+                  onSubmit={handleSubmit}
+                  onClose={() => setIsDialogOpen(false)}
+                  isSubmitting={createProject.isPending || updateProject.isPending}
+                />
               </Dialog>
-            </div>
+            </motion.div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8"
+            >
               {[
                 { label: "Total", value: stats.total, icon: FolderOpen },
                 { label: "Ativos", value: stats.active, icon: Eye },
@@ -375,7 +254,13 @@ const Admin = () => {
                 { label: "CRMs", value: stats.crms, icon: LayoutDashboard },
                 { label: "Micro-SaaS", value: stats.microSaas, icon: Star },
               ].map((stat, index) => (
-                <div key={index} className="glass-card p-4">
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 + index * 0.05 }}
+                  className="glass-card p-4"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <stat.icon className="w-5 h-5 text-primary" />
@@ -385,101 +270,84 @@ const Admin = () => {
                       <p className="text-xs text-muted-foreground">{stat.label}</p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* Projects Table */}
-            <div className="glass-card overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="text-muted-foreground">Projeto</TableHead>
-                    <TableHead className="text-muted-foreground">Categoria</TableHead>
-                    <TableHead className="text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-muted-foreground">Destaque</TableHead>
-                    <TableHead className="text-muted-foreground text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {projects.map((project) => (
-                    <TableRow key={project.id} className="border-border">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={project.thumbnail}
-                            alt={project.name}
-                            className="w-12 h-8 rounded object-cover"
-                          />
-                          <div>
-                            <p className="font-medium text-foreground">{project.name}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-1">
-                              {project.shortDescription}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="border-border">
-                          {categoryLabels[project.category]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={project.status === "active"}
-                            onCheckedChange={() => handleToggleStatus(project)}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {project.status === "active" ? (
-                              <Eye className="w-4 h-4" />
-                            ) : (
-                              <EyeOff className="w-4 h-4" />
-                            )}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {project.featured && (
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <a
-                            href={project.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </a>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleOpenDialog(project)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => handleDelete(project)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="glass-card overflow-hidden"
+            >
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="w-10"></TableHead>
+                      <TableHead className="text-muted-foreground">Projeto</TableHead>
+                      <TableHead className="text-muted-foreground">Categoria</TableHead>
+                      <TableHead className="text-muted-foreground">Status</TableHead>
+                      <TableHead className="text-muted-foreground">Destaque</TableHead>
+                      <TableHead className="text-muted-foreground text-right">
+                        Ações
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    <SortableContext
+                      items={localProjects.map((p) => p.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {localProjects.map((project) => (
+                        <SortableProjectRow
+                          key={project.id}
+                          project={project}
+                          onEdit={handleOpenDialog}
+                          onDelete={setDeleteProject}
+                          onToggleStatus={handleToggleStatus}
+                        />
+                      ))}
+                    </SortableContext>
+                  </TableBody>
+                </Table>
+              </DndContext>
+
+              {localProjects.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Nenhum projeto cadastrado.</p>
+                </div>
+              )}
+            </motion.div>
           </div>
         </main>
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deleteProject} onOpenChange={() => setDeleteProject(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir projeto?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. O projeto "{deleteProject?.title}"
+                será permanentemente removido.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );
