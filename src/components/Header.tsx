@@ -78,7 +78,7 @@ const Header = () => {
           <img 
             src={logo} 
             alt="Lápis Criativo" 
-            className="h-12 w-auto object-contain"
+            className="h-16 w-auto object-contain"
           />
         </Link>
 
