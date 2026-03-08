@@ -10,7 +10,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Lápis Criativo - Agência de Design & Desenvolvimento Digital</title>
+        <title>Agência Lápis Criativo, transformamos sua ideia em realidade</title>
         <meta
           name="description"
           content="Desenvolvemos sites, landing pages, CRMs e Micro-SaaS com design premium e tecnologia de ponta. Transformamos ideias em negócios digitais de sucesso."
