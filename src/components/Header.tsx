@@ -137,9 +137,9 @@ const Header = () => {
                 <button
                   key={item.id}
                   onClick={item.action}
-                  className={`text-left py-3 px-4 rounded-lg transition-all duration-200 ${
+                  className={`text-left text-base font-bold py-3 px-4 rounded-lg transition-all duration-200 ${
                     activeSection === item.id
-                      ? "bg-primary/10 text-primary font-medium"
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
