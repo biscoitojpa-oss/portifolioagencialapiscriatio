@@ -11,11 +11,11 @@ const Footer = () => {
             className="h-20 w-auto object-contain"
           />
 
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-base font-bold text-muted-foreground text-center">
             Transformando ideias em negócios digitais de sucesso.
           </p>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base font-bold text-muted-foreground">
             © {new Date().getFullYear()} Lápis Criativo. Todos os direitos reservados.
           </p>
         </div>
