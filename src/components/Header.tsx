@@ -88,9 +88,9 @@ const Header = () => {
             <button
               key={item.id}
               onClick={item.action}
-              className="relative text-sm transition-colors duration-200"
+              className="relative text-base font-bold transition-colors duration-200"
             >
-              <span className={activeSection === item.id ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}>
+              <span className={activeSection === item.id ? "text-primary" : "text-muted-foreground hover:text-foreground"}>
                 {item.label}
               </span>
               {activeSection === item.id && (
@@ -137,9 +137,9 @@ const Header = () => {
                 <button
                   key={item.id}
                   onClick={item.action}
-                  className={`text-left py-3 px-4 rounded-lg transition-all duration-200 ${
+                  className={`text-left text-base font-bold py-3 px-4 rounded-lg transition-all duration-200 ${
                     activeSection === item.id
-                      ? "bg-primary/10 text-primary font-medium"
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
