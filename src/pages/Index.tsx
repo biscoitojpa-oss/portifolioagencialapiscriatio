@@ -87,7 +87,7 @@ const Index = () => {
           </section>
         </main>
         <Footer />
-        <WhatsAppButton phoneNumber="5521965982906" />
+        <WhatsAppButton phoneNumber="5521991796781" />
       </div>
     </>
   );
