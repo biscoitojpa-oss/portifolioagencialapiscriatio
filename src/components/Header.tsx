@@ -88,9 +88,9 @@ const Header = () => {
             <button
               key={item.id}
               onClick={item.action}
-              className="relative text-sm transition-colors duration-200"
+              className="relative text-base font-bold transition-colors duration-200"
             >
-              <span className={activeSection === item.id ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}>
+              <span className={activeSection === item.id ? "text-primary" : "text-muted-foreground hover:text-foreground"}>
                 {item.label}
               </span>
               {activeSection === item.id && (
