@@ -8,7 +8,7 @@ const Footer = () => {
           <img 
             src={logo} 
             alt="Lápis Criativo" 
-            className="h-12 w-auto object-contain"
+            className="h-20 w-auto object-contain"
           />
 
           <p className="text-sm text-muted-foreground text-center">
