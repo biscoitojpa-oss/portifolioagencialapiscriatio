@@ -256,7 +256,7 @@ const Project = () => {
                     )}
                     
                     <motion.a
-                      href="https://wa.me/5521965982906?text=Olá! Vi o projeto no portfólio e gostaria de saber mais."
+                      href="https://wa.me/5521991796781?text=Olá! Vi o projeto no portfólio e gostaria de saber mais."
                       target="_blank"
                       rel="noopener noreferrer"
                       whileHover={{ scale: 1.02 }}
